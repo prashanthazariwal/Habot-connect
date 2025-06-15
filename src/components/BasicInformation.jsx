@@ -1,7 +1,14 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 
 const BasicInformation = ({ formData, handleInputChange, errors }) => {
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const storedData = localStorage.getItem("formData");
+    if (storedData) {
+      console.log("Form Data from Local Storage:", JSON.parse(storedData));
+    }
+  }, [formData]);
 
   const handleImageClick = () => {
     fileInputRef.current.click();
@@ -61,7 +68,7 @@ const BasicInformation = ({ formData, handleInputChange, errors }) => {
           id="name"
           value={formData.name}
           onChange={handleInputChange}
-          className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+          className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 px-4 py-2 ${
             errors.name ? "border-red-300" : "border-gray-300"
           }`}
           required
@@ -84,7 +91,7 @@ const BasicInformation = ({ formData, handleInputChange, errors }) => {
           rows={4}
           value={formData.bio}
           onChange={handleInputChange}
-          className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+          className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-4 ${
             errors.bio ? "border-red-300" : "border-gray-300"
           }`}
           required
@@ -94,13 +101,13 @@ const BasicInformation = ({ formData, handleInputChange, errors }) => {
         )}
       </div>
 
-      <div>
+      <div className="">
         <label className="block text-sm font-medium text-gray-700">
           Profile Picture
         </label>
-        <div className="mt-1 flex items-center space-x-4">
+        <div className="mt-1 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 md:gap-20">
           {formData.profilePicture ? (
-            <div className="relative">
+            <div className="relative ">
               <img
                 src={formData.profilePicture}
                 alt="Profile"
@@ -134,7 +141,7 @@ const BasicInformation = ({ formData, handleInputChange, errors }) => {
               </button>
             </div>
           ) : (
-            <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center">
+            <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center p-4 text-center">
               <span className="text-gray-400">No image</span>
             </div>
           )}
@@ -155,7 +162,7 @@ const BasicInformation = ({ formData, handleInputChange, errors }) => {
               ref={fileInputRef}
               onChange={handleFileChange}
               accept="image/*"
-              className="hidden"
+              className="hidden px-4 py-2"
             />
             <p className="text-xs text-gray-500">
               Max file size: 5MB. Supported formats: JPG, PNG, GIF

@@ -114,7 +114,7 @@ const ServicesExpertise = ({ formData, handleInputChange, errors }) => {
           min="0"
           value={formData.yearsOfExperience}
           onChange={handleInputChange}
-          className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+          className={`mt-1 block w-full px-4 py-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
             errors.yearsOfExperience ? "border-red-300" : "border-gray-300"
           }`}
           required

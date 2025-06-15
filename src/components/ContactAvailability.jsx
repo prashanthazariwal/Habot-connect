@@ -39,7 +39,7 @@ const ContactAvailability = ({ formData, handleInputChange, errors }) => {
           id="email"
           value={formData.email}
           onChange={handleInputChange}
-          className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+          className={`mt-1 block w-full rounded-md px-4 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
             errors.email ? "border-red-300" : "border-gray-300"
           }`}
           required
@@ -62,7 +62,7 @@ const ContactAvailability = ({ formData, handleInputChange, errors }) => {
           id="phone"
           value={formData.phone}
           onChange={handleInputChange}
-          className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+          className={`mt-1 block w-full rounded-md px-4 py-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
             errors.phone ? "border-red-300" : "border-gray-300"
           }`}
           required

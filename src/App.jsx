@@ -1,12 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import { motion, AnimatePresence } from "motion/react";
 import "./App.css";
 import BasicInformation from "./components/BasicInformation";
 import ServicesExpertise from "./components/ServicesExpertise";
 import ContactAvailability from "./components/ContactAvailability";
 
-function App() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
+// Navigation component
+const Navigation = ({ currentStep, totalSteps }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const steps = [
+    { path: "/", label: "Basic Information" },
+    { path: "/services", label: "Services & Expertise" },
+    { path: "/contact", label: "Contact & Availability" },
+  ];
+
+  return (
+    <div className="mb-8">
+      <div className="flex justify-between">
+        {steps.map((step, index) => (
+          <div
+            key={step.path}
+            className={`w-1/3 text-center ${
+              location.pathname === step.path
+                ? "text-blue-600"
+                : "text-gray-400"
+            }`}
+          >
+            {step.label}
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 h-2 bg-gray-200 rounded-full">
+        <motion.div
+          className="h-full bg-blue-600 rounded-full"
+          initial={{ width: 0 }}
+          animate={{
+            width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%`,
+          }}
+          transition={{ duration: 0.3 }}
+        />
+      </div>
+    </div>
+  );
+};
+
+// Form Container component
+const FormContainer = () => {
+  const initialFormData = {
     // Step 1: Basic Information
     name: "",
     bio: "",
@@ -21,9 +70,34 @@ function App() {
     email: "",
     phone: "",
     workingHours: [],
-  });
+  };
 
+  const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Load data from localStorage on component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem("providerProfile");
+    if (savedData) {
+      setFormData(JSON.parse(savedData));
+    }
+  }, []);
+
+  const getCurrentStep = () => {
+    switch (location.pathname) {
+      case "/":
+        return 1;
+      case "/services":
+        return 2;
+      case "/contact":
+        return 3;
+      default:
+        return 1;
+    }
+  };
 
   const validateStep = (step) => {
     const newErrors = {};
@@ -82,13 +156,31 @@ function App() {
   };
 
   const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep((prev) => prev + 1);
+    if (validateStep(getCurrentStep())) {
+      switch (location.pathname) {
+        case "/":
+          navigate("/services");
+          break;
+        case "/services":
+          navigate("/contact");
+          break;
+        default:
+          break;
+      }
     }
   };
 
   const handlePrevious = () => {
-    setCurrentStep((prev) => prev - 1);
+    switch (location.pathname) {
+      case "/services":
+        navigate("/");
+        break;
+      case "/contact":
+        navigate("/services");
+        break;
+      default:
+        break;
+    }
   };
 
   const handleInputChange = (e) => {
@@ -97,7 +189,6 @@ function App() {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -106,122 +197,147 @@ function App() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateStep(currentStep)) {
-      console.log("Form Data:", formData);
-      alert("Profile saved successfully!");
-    }
-  };
+    if (validateStep(getCurrentStep())) {
+      setIsSubmitting(true);
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <BasicInformation
-            formData={formData}
-            handleInputChange={handleInputChange}
-            errors={errors}
-          />
+      try {
+        const timestamp = new Date().toISOString();
+        const savedProfiles = JSON.parse(
+          localStorage.getItem("savedProfiles") || "[]"
         );
-      case 2:
-        return (
-          <ServicesExpertise
-            formData={formData}
-            handleInputChange={handleInputChange}
-            errors={errors}
-          />
-        );
-      case 3:
-        return (
-          <ContactAvailability
-            formData={formData}
-            handleInputChange={handleInputChange}
-            errors={errors}
-          />
-        );
-      default:
-        return null;
+        savedProfiles.push({
+          ...formData,
+          id: timestamp,
+          submittedAt: timestamp,
+        });
+        localStorage.setItem("savedProfiles", JSON.stringify(savedProfiles));
+
+        const successMessage = document.createElement("div");
+        successMessage.className =
+          "fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg";
+        successMessage.textContent = "Profile saved successfully!";
+        document.body.appendChild(successMessage);
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        successMessage.remove();
+
+        setFormData(initialFormData);
+        navigate("/");
+      } catch (error) {
+        console.error("Error saving profile:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white shadow rounded-lg p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white shadow rounded-lg p-6"
+        >
           <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
             Provider Profile Builder
           </h1>
 
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex justify-between">
-              <div
-                className={`w-1/3 text-center ${
-                  currentStep >= 1 ? "text-blue-600" : "text-gray-400"
-                }`}
-              >
-                Basic Information
-              </div>
-              <div
-                className={`w-1/3 text-center ${
-                  currentStep >= 2 ? "text-blue-600" : "text-gray-400"
-                }`}
-              >
-                Services & Expertise
-              </div>
-              <div
-                className={`w-1/3 text-center ${
-                  currentStep >= 3 ? "text-blue-600" : "text-gray-400"
-                }`}
-              >
-                Contact & Availability
-              </div>
-            </div>
-            <div className="mt-2 h-2 bg-gray-200 rounded-full">
-              <div
-                className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
-              ></div>
-            </div>
-          </div>
+          <Navigation currentStep={getCurrentStep()} totalSteps={3} />
 
           <form onSubmit={handleSubmit}>
-            {renderStep()}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <BasicInformation
+                        formData={formData}
+                        handleInputChange={handleInputChange}
+                        errors={errors}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/services"
+                    element={
+                      <ServicesExpertise
+                        formData={formData}
+                        handleInputChange={handleInputChange}
+                        errors={errors}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/contact"
+                    element={
+                      <ContactAvailability
+                        formData={formData}
+                        handleInputChange={handleInputChange}
+                        errors={errors}
+                      />
+                    }
+                  />
+                </Routes>
+              </motion.div>
+            </AnimatePresence>
 
-            {/* Navigation Buttons */}
             <div className="mt-8 flex justify-between">
-              {currentStep > 1 && (
-                <button
+              {location.pathname !== "/" && (
+                <motion.button
                   type="button"
                   onClick={handlePrevious}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                 >
                   Previous
-                </button>
+                </motion.button>
               )}
 
-              {currentStep < 3 ? (
-                <button
+              {location.pathname !== "/contact" ? (
+                <motion.button
                   type="button"
                   onClick={handleNext}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   Next
-                </button>
+                </motion.button>
               ) : (
-                <button
+                <motion.button
                   type="submit"
-                  className="ml-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                  disabled={isSubmitting}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="ml-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
                 >
-                  Save Profile
-                </button>
+                  {isSubmitting ? "Saving..." : "Save Profile"}
+                </motion.button>
               )}
             </div>
           </form>
-        </div>
+        </motion.div>
       </div>
     </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <FormContainer />
+    </Router>
   );
 }
 
