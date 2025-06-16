@@ -80,7 +80,7 @@ const FormContainer = () => {
 
   // Load data from localStorage on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem("providerProfile");
+    const savedData = localStorage.getItem("habotprovider-form");
     if (savedData) {
       setFormData(JSON.parse(savedData));
     }
@@ -205,14 +205,27 @@ const FormContainer = () => {
       try {
         const timestamp = new Date().toISOString();
         const savedProfiles = JSON.parse(
-          localStorage.getItem("savedProfiles") || "[]"
+          localStorage.getItem("habotprovider-savedProfiles") || "[]"
         );
-        savedProfiles.push({
+
+        const newProfile = {
           ...formData,
           id: timestamp,
           submittedAt: timestamp,
-        });
-        localStorage.setItem("savedProfiles", JSON.stringify(savedProfiles));
+        };
+
+        savedProfiles.push(newProfile);
+        localStorage.setItem(
+          "habotprovider-savedProfiles",
+          JSON.stringify(savedProfiles)
+        );
+
+        // Console logs for submission data
+        console.log("=== Form Submission Details ===");
+        console.log("New Profile Data:", newProfile);
+        console.log("All Saved Profiles:", savedProfiles);
+        console.log("Total Profiles Saved:", savedProfiles.length);
+        console.log("===========================");
 
         const successMessage = document.createElement("div");
         successMessage.className =

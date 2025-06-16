@@ -4,7 +4,7 @@ const BasicInformation = ({ formData, handleInputChange, errors }) => {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const storedData = localStorage.getItem("formData");
+    const storedData = localStorage.getItem("habotprovider-form");
     if (storedData) {
       console.log("Form Data from Local Storage:", JSON.parse(storedData));
     }
